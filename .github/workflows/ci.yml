@@ -1,0 +1,14 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node --test tests/core.test.js
+      - run: npx -y web-ext@8.3.0 lint --source-dir . --ignore-files "dist/**" "tests/**" "tools/**" ".github/**" --self-hosted

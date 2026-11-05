@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "PocketCanvas",
+  "version": "0.1.0",
+  "description": "Every Canvas class's work in one list, in order, with WeBWorK and Gradescope due dates filled in. Hide or ghost old classes, mark priority ones, and give Canvas Collegiapp's Pocket look or a plain one.",
+  "homepage_url": "https://github.com/imanimal/pocketcanvas",
+  "author": "imanimal",
+  "icons": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png", "96": "icons/icon-96.png", "128": "icons/icon-128.png" },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "pocketcanvas@imanimal.github.io",
+      "strict_min_version": "128.0",
+      "update_url": "https://github.com/imanimal/pocketcanvas/releases/latest/download/updates.json",
+      "data_collection_permissions": { "required": ["none"] }
+    }
+  },
+  "background": {
+    "scripts": ["src/lib/util.js", "src/lib/icons.js", "src/lib/themes.js", "src/lib/apps.js", "src/lib/work.js", "src/lib/canvas-api.js", "src/lib/collegiapp.js", "src/lib/cloud.js", "src/background.js"]
+  },
+  "action": {
+    "default_popup": "src/pages/popup.html",
+    "default_title": "PocketCanvas",
+    "default_icon": { "16": "icons/icon-16.png", "32": "icons/icon-32.png", "48": "icons/icon-48.png" }
+  },
+  "options_ui": { "page": "src/pages/options.html", "open_in_tab": true },
+  "permissions": ["storage", "alarms", "notifications", "menus", "declarativeNetRequest", "scripting", "identity"],
+  "host_permissions": [
+    "*://*.instructure.com/*",
+    "https://canvas.ucsb.edu/*",
+    "https://webwork.math.ucsb.edu/*",
+    "https://www.gradescope.com/*",
+    "http://127.0.0.1:4747/*"
+  ],
+  "optional_host_permissions": ["*://*/*"],
+  "content_scripts": [
+    {
+      "matches": ["*://*.instructure.com/*", "https://canvas.ucsb.edu/*"],
+      "js": ["src/lib/util.js", "src/lib/icons.js", "src/lib/themes.js", "src/lib/apps.js", "src/lib/work.js", "src/lib/canvas-api.js", "src/lib/collegiapp.js", "src/ui/kit.js", "src/content/boot.js", "src/content/canvas.js"],
+      "css": ["src/ui/kit.css", "src/content/canvas.css"],
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://webwork.math.ucsb.edu/*", "https://www.gradescope.com/*"],
+      "js": ["src/lib/util.js", "src/lib/apps.js", "src/content/apps-page.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    { "resources": ["src/pages/blocked.html"], "matches": ["<all_urls>"] }
+  ],
+  "commands": {
+    "_execute_action": { "suggested_key": { "default": "Alt+Shift+P" }, "description": "Open PocketCanvas" },
+    "open-board": { "suggested_key": { "default": "Alt+Shift+B" }, "description": "Open the board" }
+  }
+}
