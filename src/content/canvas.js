@@ -1,5 +1,5 @@
 /* PocketCanvas: on every Canvas page.
-   - Look: the theme and restyle flags on <html> (canvas.css does the drawing), remembered for boot.js.
+   - Look: the theme and restyle flags on <html> (canvas.css and paint.js do the drawing), remembered for boot.js.
    - Data: reads your classes and every assignment from the Canvas API with this page's session, at most every
      10 minutes (or when asked), into storage.local "cache". Every surface redraws from storage.
    - Dock: a strip of course keys on top of every page. A key opens the same page in that class (Assignments in
@@ -35,6 +35,7 @@
     } else {
       root.removeAttribute("data-pc-on"); root.style.colorScheme = "";
     }
+    root.style.setProperty("--pc-school", JSON.stringify(PC.u.school(location.hostname)));
     const icons = {};
     for (const n of ["now", "classes", "week", "inbox", "clock", "help", "links"]) { icons[n] = PC.icUrl(n, t.look); root.style.setProperty("--pc-ic-" + n, icons[n]); }
     const tabs = s.tabOrder ? PC.work.tabRanks(S.tabUse[host] || {}, Date.now()) : false;

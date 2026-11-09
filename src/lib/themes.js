@@ -60,6 +60,99 @@
     return Object.assign({}, theme, { tokens: tk });
   }
 
+  // ── Canvas's own colours (paint.js) ──
+  const alpha = (a) => (a == null ? 1 : a.endsWith("%") ? parseFloat(a) / 100 : +a);
+  const byte = (v) => Math.max(0, Math.min(255, Math.round(v)));
+  /** A colour as a browser reports it (#rgb, #rrggbb, rgb(), rgba(), color(srgb …), transparent) as [r, g, b, a], else null. */
+  function rgba(s) {
+    s = String(s || "").trim().toLowerCase();
+    if (s === "transparent") return [0, 0, 0, 0];
+    const h = hex(s);
+    if (h) return [...rgb(h), 1];
+    let m = /^#([0-9a-f]{3}|[0-9a-f]{6})([0-9a-f]{1,2})$/.exec(s);
+    if (m && m[2].length * 3 === m[1].length) return [...rgb(hex("#" + m[1])), parseInt(m[2].length === 1 ? m[2] + m[2] : m[2], 16) / 255];
+    m = /^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)\s*(?:[,/]\s*([\d.]+%?)\s*)?\)$/.exec(s);
+    if (m) return [byte(m[1]), byte(m[2]), byte(m[3]), alpha(m[4])];
+    m = /^color\(srgb\s+([-\d.e]+)\s+([-\d.e]+)\s+([-\d.e]+)\s*(?:\/\s*([\d.]+%?)\s*)?\)$/.exec(s);
+    if (m) return [byte(m[1] * 255), byte(m[2] * 255), byte(m[3] * 255), alpha(m[4])];
+    return null;
+  }
+  /** `c` ([r, g, b, a]) laid over the solid colour `under` (#rrggbb), as #rrggbb. */
+  const over = (c, under) => "#" + rgb(under).map((u, i) => byte(c[i] * c[3] + u * (1 - c[3])).toString(16).padStart(2, "0")).join("");
+  /** White or a near-white grey ([r, g, b, a]): what pasting from Word or Docs leaves behind, not a tint someone chose. */
+  const paper = (c) => !!c && c[3] > 0.5 && Math.min(c[0], c[1], c[2]) >= 232 && Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) < 16;
+  /** Canvas's own body text, for text on a light box in a dark theme. */
+  const CANVAS_INK = "#2d3b45";
+  /**
+   * What to draw text `fg` in where it doesn't read on `bg` (both #rrggbb), or null where it does: 3:1 for Canvas's own
+   * text, `min` (4.5) for a colour a teacher chose. Grey text takes `text` (the theme's) or Canvas's ink, whichever reads;
+   * coloured text keeps its hue and moves toward white or black until it reaches 4.5:1.
+   */
+  function ink(fg, bg, text, min) {
+    if (contrast(fg, bg) >= (min || 3)) return null;
+    const c = rgb(fg);
+    if (Math.max(...c) - Math.min(...c) < 48) {
+      for (const t of [text, CANVAS_INK]) if (t && contrast(t, bg) >= 4.5) return t;
+      return contrast("#000000", bg) > contrast("#ffffff", bg) ? "#000000" : "#ffffff";
+    }
+    const toward = lum(bg) > 0.18 ? "#000000" : "#ffffff";
+    for (let t = 0.05; t < 1; t += 0.05) { const m = mix(fg, toward, t); if (contrast(m, bg) >= 4.5) return m; }
+    return toward;
+  }
+
+  // Canvas and InstUI draw every page from one light palette: white cards, pale grey wells, grey hairlines, slate text,
+  // a blue (or the school's colour) for links and the main key, and green, red and amber for states. role() names the
+  // job a colour does there from its hue and lightness, not from a list of shades, so pages and shades Canvas adds
+  // later are covered too. Each job is a theme token, or one canvas.css makes from them (link, tint-*).
+  const FILLS = new Set(["accent", "chrome-bg", "bad", "ok", "warn", "text3"]);
+  const ON = { accent: "on-accent", "chrome-bg": "chrome-fg", bad: "on-bad", ok: "on-ok", warn: "on-warn", text3: "on-mute" };
+  /** Text tokens for the fills a theme names none for, made by apply(): [token, fill]. */
+  const ON_MORE = [["on-ok", "ok"], ["on-warn", "warn"], ["on-mute", "text3"], ["on-acc2", "acc2"]];
+  const onFill = (tk, b) => (contrast(tk.surface, tk[b]) >= contrast(tk.text, tk[b]) ? tk.surface : tk.text);
+  /**
+   * The token to draw one of Canvas's colours ([r, g, b, a]) in, by its use: "bg" (a fill), "fg" (text, icons) or
+   * "line" (borders, rings). `fill` is the token of the solid fill under text, if any (white or slate text there takes
+   * that fill's text colour); `head` is a heading's text. Null keeps the colour: see-through greys (shadows, scrims),
+   * colours outside Canvas's families, and white text with no fill known under it.
+   */
+  function role(c, use, fill, head) {
+    if (!c || c[3] === 0) return null;
+    const h6 = c[3] < 1 ? over(c, "#ffffff") : over([c[0], c[1], c[2], 1], "#000000"), [r, g, b] = rgb(h6), L = lum(h6);
+    const max = Math.max(r, g, b), ch = max - Math.min(r, g, b), s = max ? ch / max : 0;
+    const grey = ch < 34 && s < 0.45 && !(L > 0.5 && s >= 0.06);
+    if (grey && c[3] < 0.95 && use !== "fg") return null;
+    let fam = null;
+    if (!grey) {
+      const h = ((r === max ? (g - b) / ch : g === max ? 2 + (b - r) / ch : 4 + (r - g) / ch) * 60 + 360) % 360;
+      fam = h >= 330 || h < 14 ? "bad" : h < 65 ? "warn" : h < 180 ? "ok" : h < 255 ? "accent" : null;
+    }
+    if (use === "bg") {
+      if (grey) return L >= 0.94 ? "surface" : L >= 0.6 ? "surface2" : L >= 0.3 ? "line" : L >= 0.1 ? "text3" : "chrome-bg";
+      return fam && (L >= 0.7 ? "tint-" + fam : fam);
+    }
+    if (use === "line") return grey ? (L >= 0.15 ? "line" : "text3") : fam && (L >= 0.7 ? "line" : fam);
+    if (FILLS.has(fill) && (grey || L >= 0.7)) return ON[fill];
+    if (grey) return L < 0.1 ? (head ? "text" : "text2") : L < 0.75 ? "text3" : null;
+    return fam && L < 0.7 ? { accent: "link", warn: "warn-ink" }[fam] || fam : null;
+  }
+  const COLOUR = /#[0-9a-f]{3,8}\b|(?:rgba?|color)\([^()]*\)|\b(?:white|black)\b/gi;
+  /**
+   * A CSS value with Canvas's colours in it swapped for var(--pc-<role>), or null when none changes. `use` as for
+   * role(), or "shadow" for a box-shadow, where only solid pale greys (hairlines drawn as shadows) and colours (focus
+   * rings) change; a drop shadow keeps its grey. `keep(c)` spares colours that are already the theme's.
+   */
+  function recolour(v, use, fill, head, keep) {
+    let n = 0;
+    const out = String(v).replace(COLOUR, (m) => {
+      const c = rgba(/^white$/i.test(m) ? "#ffffff" : /^black$/i.test(m) ? "#000000" : m);
+      const flat = c && c[3] === 1 && Math.max(c[0], c[1], c[2]) - Math.min(c[0], c[1], c[2]) < 34;
+      const r = c && !(keep && keep(c)) && !(use === "shadow" && (c[3] < 1 || (flat && lum(over(c, "#000000")) < 0.1))) && role(c, use === "shadow" ? "line" : use, fill, head);
+      if (!r) return m;
+      n++; return `var(--pc-${r})`;
+    });
+    return n ? out : null;
+  }
+
   const slug = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
   // Theme CSS may restyle anything, but never loads anything: no @import, no url() other than data: URLs
   const safeCss = (css) => String(css || "").slice(0, 60000).replace(/@import[^;]*;?/gi, "").replace(/url\(\s*(['"]?)(?!data:)[^)]*\)/gi, "none");
@@ -105,6 +198,7 @@
     root = root || g.document.documentElement;
     const tk = theme.tokens;
     for (const k of KEYS) root.style.setProperty("--pc-" + k, tk[k]);
+    for (const [k, b] of ON_MORE) root.style.setProperty("--pc-" + k, onFill(tk, b));
     root.dataset.pcLook = theme.look; root.dataset.pcScheme = theme.scheme;
     root.style.colorScheme = theme.scheme;
   }
@@ -157,5 +251,5 @@ Rules: text, text2 and text3 reach 4.5:1 contrast on surface and on bg. on-accen
   /** A 5-colour strip for theme cards. */
   const swatch = (t) => ["bg", "surface", "chrome-bg", "accent", "disp-bg"].map((k) => t.tokens[k]);
 
-  PC.themes = { KEYS, BUILTIN, byId, normalize, fix, apply, isNight, pick, prompt, BOTS, contrast, hex, checks, swatch, safeCss };
+  PC.themes = { KEYS, BUILTIN, byId, normalize, fix, apply, isNight, pick, prompt, BOTS, contrast, hex, checks, swatch, safeCss, rgba, over, paper, ink, role, recolour, FILLS, ON };
 })(globalThis);

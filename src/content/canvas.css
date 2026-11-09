@@ -16,8 +16,15 @@ html[data-pc-on] {
   --ic-brand-global-nav-menu-item__text-color: var(--pc-chrome-fg); --ic-brand-global-nav-menu-item__text-color--active: var(--pc-chrome-fg);
   --ic-brand-global-nav-avatar-border: var(--pc-chrome-fg); --ic-brand-global-nav-menu-item__badge-bgd: var(--pc-accent); --ic-brand-global-nav-menu-item__badge-text: var(--pc-on-accent);
   --ic-brand-global-nav-logo-bgd: var(--pc-chrome-bg);
+  /* jobs paint.js gives Canvas's colours that the theme has no token for (on-ok, on-warn and on-mute come from apply()) */
+  --pc-link: var(--ic-link-color);
+  --pc-tint-accent: color-mix(in srgb, var(--pc-accent) 13%, var(--pc-surface)); --pc-tint-ok: color-mix(in srgb, var(--pc-ok) 14%, var(--pc-surface));
+  --pc-tint-bad: color-mix(in srgb, var(--pc-bad) 13%, var(--pc-surface)); --pc-tint-warn: color-mix(in srgb, var(--pc-warn) 16%, var(--pc-surface));
+  /* InstUI's button faces as keys (paint.js) */
+  --pc-key: inset 0 1px 0 var(--pc-hl), 0 3px 0 var(--pc-lip); --pc-key-lit: inset 0 1px 0 rgba(255, 255, 255, .3), 0 3px 0 rgba(0, 0, 0, .32);
   color-scheme: var(--pc-scheme, light);
 }
+html[data-pc-on][data-pc-look="standard"] { --pc-key: none; --pc-key-lit: none; }
 html[data-pc-on][data-pc-look="standard"] {
   --ic-brand-global-nav-bgd: var(--pc-surface); --ic-brand-global-nav-ic-icon-svg-fill: var(--pc-text2); --ic-brand-global-nav-ic-icon-svg-fill--active: var(--pc-accent);
   --ic-brand-global-nav-menu-item__text-color: var(--pc-text2); --ic-brand-global-nav-menu-item__text-color--active: var(--pc-text); --ic-brand-global-nav-logo-bgd: var(--pc-surface);
@@ -27,9 +34,11 @@ html[data-pc-on][data-pc-look="standard"] {
 
 /* ── page, type ── */
 html[data-pc-on] body { background-color: var(--pc-bg) !important; color: var(--pc-text2) !important; }
-html[data-pc-on][data-pc-look="pocket"] body { background-image: radial-gradient(color-mix(in srgb, var(--pc-text) 9%, transparent) 1px, transparent 1.4px) !important; background-size: 16px 16px !important; }
+html[data-pc-on][data-pc-look="pocket"] :is(body, .ic-Dashboard-header) { background-image: radial-gradient(color-mix(in srgb, var(--pc-text) 9%, transparent) 1px, transparent 1.4px) !important; background-size: 16px 16px !important; background-attachment: fixed !important; }
 html[data-pc-on] body :not(code, pre, pre *, kbd, samp, svg, svg *, math, math *, .MathJax, .MathJax *, .katex, .katex *, i, [class*="icon-"], [class*="Icon"], [class^="pc-i"]) { font-family: var(--pc-font) !important; }
-html[data-pc-on] :is(#wrapper, #main, .ic-app-main-content, #content-wrapper, .ic-Layout-contentWrapper, .ic-Layout-contentMain, #not_right_side, .ic-Layout-columns, .ic-app-nav-toggle-and-crumbs, #right-side-wrapper, #right-side, #left-side, .ic-app-course-menu, #dashboard, #DashboardCard_Container, .ic-DashboardCard__box, .ic-Dashboard-header, .ic-Dashboard-header__layout) { background-color: transparent !important; }
+html[data-pc-on] :is(#wrapper, #main, .ic-app-main-content, #content-wrapper, .ic-Layout-contentWrapper, .ic-Layout-contentMain, #not_right_side, .ic-Layout-columns, .ic-app-nav-toggle-and-crumbs, #right-side-wrapper, #right-side, #left-side, .ic-app-course-menu, #dashboard, #DashboardCard_Container, .ic-DashboardCard__box, .ic-Dashboard-header__layout) { background-color: transparent !important; }
+/* the dashboard's title bar stays on top as the planner scrolls, so it's the page, not a hole in it */
+html[data-pc-on] .ic-Dashboard-header { background-color: var(--pc-bg) !important; }
 html[data-pc-on] #content { color: var(--pc-text2); }
 /* reading surfaces: anything you read at length sits on a card */
 html[data-pc-on] #content:not(:has(#dashboard, #dashboard-planner, .ic-DashboardCard)) { background: var(--pc-surface) !important; border-radius: var(--pc-r); box-shadow: var(--pc-card); margin: 0 0 24px; }
@@ -56,6 +65,16 @@ html[data-pc-on] :is(#header, .ic-app-header) { background: var(--pc-chrome-bg) 
 html[data-pc-on][data-pc-look="standard"] :is(#header, .ic-app-header) { background: var(--pc-surface) !important; box-shadow: 1px 0 0 var(--pc-line) !important; }
 html[data-pc-on] .ic-app-header__logomark-container { background: transparent !important; }
 html[data-pc-on][data-pc-nologo] .ic-app-header__logomark-container { display: none !important; }
+/* the school's picture (often a square in its own colours) gives way to its short name in the theme: an LCD inlay in
+   Pocket, plain type in Standard (--pc-school, set by boot.js and canvas.js) */
+html[data-pc-on] .ic-app-header__logomark { display: grid !important; place-items: center; background: none !important; text-decoration: none !important; }
+html[data-pc-on] .ic-app-header__logomark::after {
+  content: var(--pc-school, "CANVAS"); max-width: 62px; overflow: hidden; padding: 6px 8px 5px; border-radius: 6px; white-space: nowrap;
+  color: var(--pc-disp-fg); font: 800 calc(25px * var(--pc-ns)) / 1 var(--pc-num); letter-spacing: .02em;
+  background: var(--pc-disp-bg) radial-gradient(color-mix(in srgb, var(--pc-disp-fg) 9%, transparent) 1px, transparent 1.3px) 0 0 / 3px 3px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .28), inset 0 2px 4px rgba(0, 0, 0, .25), 0 0 0 3px color-mix(in srgb, var(--pc-chrome-fg) 10%, transparent);
+}
+html[data-pc-on][data-pc-look="standard"] .ic-app-header__logomark::after { padding: 0; background: none; box-shadow: none; color: var(--pc-text); font: 700 15px/1 var(--pc-font); }
 html[data-pc-on] .ic-app-header__menu-list-link { color: var(--ic-brand-global-nav-menu-item__text-color) !important; border-radius: 10px; margin: 2px 6px !important; width: auto !important; transition: background calc(var(--pc-m) * 120ms); }
 html[data-pc-on] .ic-app-header__menu-list-item--active .ic-app-header__menu-list-link,
 html[data-pc-on] .ic-app-header__menu-list-item.ic-app-header__menu-list-item--active > a { background: color-mix(in srgb, var(--pc-chrome-fg) 13%, transparent) !important; color: var(--pc-chrome-fg) !important; }
@@ -192,6 +211,10 @@ html[data-pc-on][data-pc-look="standard"] :is(.btn, .Button, a.btn, button.btn, 
 html[data-pc-on][data-pc-look="standard"] :is(.btn, .Button, a.btn, button.btn, .ui-button):not(.pc-key):active { transform: none; background: var(--pc-surface2) !important; }
 html[data-pc-on][data-pc-look="standard"] :is(.btn-primary, .Button--primary):not(.pc-key) { box-shadow: none !important; }
 html[data-pc-on] :is(.btn, .Button) :is(i, [class*="icon-"])::before { color: inherit !important; }
+/* InstUI's buttons, whose faces paint.js makes keys: a Pocket key goes down when pressed */
+html[data-pc-on][data-pc-look="pocket"] :is(button, a, [role="button"]):active:not([disabled], [aria-disabled="true"]) > [class*="-baseButton__content"] { transform: translateY(3px) !important; box-shadow: none !important; }
+/* InstUI's notes: an info note is a note, not the main key, so in one the blue paint.js turns into the accent is acc2 */
+html[data-pc-on] [class*="-view-alert"] { --pc-accent: var(--pc-acc2); --pc-on-accent: var(--pc-on-acc2); --pc-tint-accent: color-mix(in srgb, var(--pc-acc2) 13%, var(--pc-surface)); }
 
 /* ── fields and tables ── */
 html[data-pc-on] #content :is(input[type="text"], input[type="search"], input[type="email"], input[type="number"], input[type="password"], input[type="url"], input[type="date"], input:not([type]), select, textarea) {
@@ -199,8 +222,9 @@ html[data-pc-on] #content :is(input[type="text"], input[type="search"], input[ty
 }
 html[data-pc-on] #content :is(input, select, textarea):focus { outline: 2px solid var(--pc-accent) !important; outline-offset: -1px; }
 html[data-pc-on] #content :is(table, .table) { color: var(--pc-text2); border-color: var(--pc-line) !important; }
-/* FullCalendar's grid is tables too, layered (see calendar below): a header fill there paints bars over the days */
-html[data-pc-on] #content :is(th, thead td):not(.fc *) { color: var(--pc-text) !important; background: var(--pc-surface2) !important; border-color: var(--pc-line) !important; }
+/* FullCalendar's grid is tables too, layered (see calendar below): a header fill there paints bars over the days. A
+   table in a teacher's page keeps the look they gave it. */
+html[data-pc-on] #content :is(th, thead td):not(.fc *, :is(.user_content, .show-content) *) { color: var(--pc-text) !important; background: var(--pc-surface2) !important; border-color: var(--pc-line) !important; }
 html[data-pc-on] #content :is(td, tr):not(.fc *) { border-color: var(--pc-line) !important; }
 html[data-pc-on] #content :is(.table-striped tbody tr:nth-child(odd) td, tr.odd td) { background: color-mix(in srgb, var(--pc-surface2) 50%, transparent) !important; }
 
@@ -338,15 +362,17 @@ html[data-pc-on] .event-details .event-details-links a { border-color: var(--pc-
 html[data-pc-on] .event-details .ui-menu-carat { border-color: var(--pc-line) transparent !important; }
 html[data-pc-on] .event-details .ui-menu-carat span { border-color: var(--pc-surface) transparent !important; }
 
-/* dark themes: Canvas and InstUI paint white and slate in many places; pull them onto the theme */
-html[data-pc-on][data-pc-scheme="dark"] :is(#content, #right-side, #left-side, .ui-dialog, [role="dialog"]) :is(div, section, article, header, footer, ul, li, span, p, td, th, form, fieldset, label, nav):not([class*="pc-"], [style*="background-image"], [class*="badge"], [class*="progress"], [class*="bar"], [class*="pill"], [class*="dot"], [class*="indicator"], [class*="avatar"], [class*="Button"], [class*="btn"], [class*="color"]) { background-color: transparent; border-color: var(--pc-line); }
-/* InstUI's text and user content take the page's colour; at :where() weight, so a page's own rules (below) can set one */
-html[data-pc-on][data-pc-scheme="dark"] :where(#content, #right-side, #left-side, [role="dialog"]) :where([class^="css-"][class*="-text"], [class^="css-"][class*="-heading"], .user_content, .user_content *, .show-content *) { color: inherit !important; }
-html[data-pc-on][data-pc-scheme="dark"] :is([role="dialog"], [class^="css-"][class*="-modal"], [class^="css-"][class*="-tray"], [class^="css-"][class*="-popover"], [class^="css-"][class*="-menu"]) { background-color: var(--pc-surface) !important; color: var(--pc-text2) !important; }
+/* A teacher's page (.user_content) keeps its own boxes, borders and colours; in a dark theme its text colours go grey
+   for the first paint and paint.js puts them back where they read. Plain white pasted in from Word or Docs goes
+   before the first paint (paint.js catches the near-whites). */
 html[data-pc-on][data-pc-scheme="dark"] .user_content :is(span, p, div, td, font)[style*="color"] { color: inherit !important; }
-html[data-pc-on][data-pc-scheme="dark"] .user_content :is(span, p, div, td)[style*="background"] { background-color: transparent !important; }
+html[data-pc-on] :is(.user_content, .show-content) :is([style*="background-color: #ffffff" i], [style*="background-color: #fff;" i], [style*="background-color: white" i], [style*="background-color: rgb(255, 255, 255)" i], [style*="background: #ffffff" i], [style*="background: white" i]) { background-color: transparent !important; }
 html[data-pc-on][data-pc-scheme="dark"] :is(img.equation_image, .user_content img[src*="equation_images"]) { filter: invert(.9) hue-rotate(180deg); }
-html[data-pc-on][data-pc-scheme="dark"] iframe:not([src*="youtube"]):not([src*="vimeo"]):not([src*="kaltura"]) { color-scheme: light; }
+/* drawn for white: a teacher's pictures (black lines on nothing, often) and other sites' pages in frames (a publisher's
+   tool, an embedded doc), whose text would otherwise land on the theme wherever they leave their background empty.
+   Video players are left dark. */
+html[data-pc-on][data-pc-scheme="dark"] :is(.user_content, .show-content) img:not(.equation_image, [src*="equation_images"]) { background-color: #fff; }
+html[data-pc-on][data-pc-scheme="dark"] iframe:not([data-pc-tool], [src*="youtube"], [src*="vimeo"], [src*="kaltura"], [src*="panopto"], [src*="instructuremedia"], [src*="media_attachments_iframe"], [src*="media_objects_iframe"]) { color-scheme: light; background-color: #fff !important; }
 
 /* ── one piece of work: Canvas's new assignment view (A2) and the classic assignment page ──
    A2 is React and InstUI with hashed class names, so the hooks are its data-testids and the few ids it keeps; its root
@@ -425,6 +451,29 @@ html[data-pc-on] #sidebar_content .details .header { color: var(--pc-text) !impo
 html[data-pc-on] #sidebar_content .details .header .icon-check { color: var(--pc-ok) !important; }
 html[data-pc-on] #sidebar_content .details .header .icon-x { color: var(--pc-bad) !important; }
 
+/* ── classic quizzes: the quiz's page, taking it, and the results ──
+   The quiz's page lists its facts (Due, Points, Questions…) in ul#quiz_student_details, label over value like the
+   classic assignment's summary above. Each question is a .display_question: a .header band with its name and points
+   over .text, which holds the question (a teacher's .user_content) and its .answers. The results tag answers with
+   Canvas's own .answer_arrow (Correct!, You Answered), which keep Canvas's colours. New Quizzes draws in the page
+   (#new-quizzes-root, InstUI with black text, which canvas.js recolours) or, on older Canvas, in another site's frame
+   (the dark section above puts white behind it). */
+html[data-pc-on] ul#quiz_student_details { display: flex !important; flex-wrap: wrap; gap: 8px; margin: 12px 0 16px !important; padding: 0 !important; list-style: none; border: 0 !important; }
+html[data-pc-on] ul#quiz_student_details > li { display: flex !important; flex-direction: column; gap: 2px; float: none !important; width: auto !important; margin: 0 !important; padding: 7px 11px !important; border: 0 !important; border-radius: 9px; background: var(--pc-bg2) !important; box-shadow: inset 0 0 0 1px var(--pc-line); }
+html[data-pc-on] ul#quiz_student_details > li > .title { color: var(--pc-text3) !important; font: 600 11.5px/1.2 var(--pc-font) !important; }
+html[data-pc-on][data-pc-look="pocket"] ul#quiz_student_details > li > .title { font: 700 10px/1.2 var(--pc-font) !important; text-transform: uppercase; letter-spacing: .1em; }
+html[data-pc-on] ul#quiz_student_details > li > .value { color: var(--pc-text) !important; font: 600 13.5px/1.3 var(--pc-font) !important; }
+html[data-pc-on][data-pc-look="pocket"] ul#quiz_student_details > li > .value { font-family: var(--pc-mono) !important; font-size: 13px !important; }
+html[data-pc-on] .display_question.question { background: var(--pc-surface) !important; border: 1px solid var(--pc-line) !important; border-radius: 10px; box-shadow: none !important; }
+html[data-pc-on] .display_question.question > .header { background: var(--pc-surface2) !important; border: 0 !important; border-bottom: 1px solid var(--pc-line) !important; border-radius: 9px 9px 0 0; color: var(--pc-text) !important; }
+html[data-pc-on] .display_question.question > .header * { color: inherit !important; }
+html[data-pc-on] .display_question.question > .header .question_name { font: 600 15px/1.3 var(--pc-font) !important; }
+html[data-pc-on] .display_question.question > .header .question_points_holder { opacity: .75; font: 600 12.5px/1.3 var(--pc-font) !important; }
+html[data-pc-on][data-pc-look="pocket"] .display_question.question > .header { background: var(--pc-chrome-bg) !important; color: var(--pc-chrome-fg) !important; border-bottom-color: var(--pc-chrome-bg) !important; }
+html[data-pc-on][data-pc-look="pocket"] .display_question.question > .header .question_name { font: 700 11px/1.2 var(--pc-font) !important; text-transform: uppercase; letter-spacing: .11em; }
+html[data-pc-on][data-pc-look="pocket"] .display_question.question > .header .question_points_holder { font: 700 12px/1.2 var(--pc-mono) !important; }
+html[data-pc-on] .display_question .answers .answer { border-color: var(--pc-line) !important; }
+
 /* ── dashboard ── */
 html[data-pc-on][data-pc-full] :is(.ic-Layout-wrapper, #content, .ic-Layout-contentMain, .ic-Dashboard-header__layout) { max-width: none !important; }
 html[data-pc-on] .ic-Dashboard-header__title, html[data-pc-on] .ic-Dashboard-header h1 { color: var(--pc-text) !important; font-weight: 700 !important; }
@@ -480,6 +529,8 @@ html[data-pc-on] #dashboard-planner { color: var(--pc-text2) !important; }
 html[data-pc-on] #dashboard-planner :is(div, span, p, li, h1, h2, h3, h4, strong, b, time):not(a, a *, button, button *) { color: inherit !important; opacity: 1 !important; }
 html[data-pc-on] #dashboard-planner :is(h1, h2, h3, h4, h2 *, h3 *) { color: var(--pc-text) !important; }
 html[data-pc-on] #dashboard-planner :is(hr, [class*="Day"], [class*="day"], li, section) { border-color: var(--pc-line) !important; }
+/* a class's name sits on its picture in a label Canvas paints white; the label takes the card's fill */
+html[data-pc-on] #dashboard-planner [class*="Grouping-styles__title"] { background: var(--pc-surface) !important; color: var(--pc-text) !important; }
 html[data-pc-on][data-pc-todo] #right-side :is(.Sidebar__TodoListContainer, .events_list, .coming_up, .todo-list-header, #planner-todosidebar-item-list) { display: none !important; }
 html[data-pc-on][data-pc-nofeedback] #right-side :is(.recent_feedback, h2.recent-feedback-title) { display: none !important; }
 html[data-pc-on] #right-side :is(.Sidebar__TodoListContainer, .events_list, .recent_feedback) :is(a, b, h2, h3) { color: var(--pc-text) !important; }
@@ -554,3 +605,64 @@ html[data-pc-on] iframe[data-pc-tool] { height: var(--pc-th, 96px) !important; m
 /* the final-exam helper on Grades */
 .pc-final .pc-fgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
 .pc-final .pc-out { margin-top: 10px; font: 500 13.5px/1.4 var(--pc-font); color: var(--pc-text); }
+
+/* ── paint.js's marks: what Canvas's own sheets colour, in the theme's colour for the same job ──
+   At :where() weight with !important: over Canvas's sheets, under every rule above that names a part. */
+:where(html[data-pc-on]) :is([data-pc-still], [data-pc-still] *, [data-pc-still] *::before, [data-pc-still] *::after) { transition: none !important; }
+:where(html[data-pc-on]) [data-pc-c="text"] { color: var(--pc-text) !important; }
+:where(html[data-pc-on]) [data-pc-c="text2"] { color: var(--pc-text2) !important; }
+:where(html[data-pc-on]) [data-pc-c="text3"] { color: var(--pc-text3) !important; }
+:where(html[data-pc-on]) [data-pc-c="link"] { color: var(--pc-link) !important; }
+:where(html[data-pc-on]) [data-pc-c="ok"] { color: var(--pc-ok) !important; }
+:where(html[data-pc-on]) [data-pc-c="bad"] { color: var(--pc-bad) !important; }
+:where(html[data-pc-on]) [data-pc-c="warn-ink"] { color: var(--pc-warn-ink) !important; }
+:where(html[data-pc-on]) [data-pc-c="on-accent"] { color: var(--pc-on-accent) !important; }
+:where(html[data-pc-on]) [data-pc-c="chrome-fg"] { color: var(--pc-chrome-fg) !important; }
+:where(html[data-pc-on]) [data-pc-c="on-bad"] { color: var(--pc-on-bad) !important; }
+:where(html[data-pc-on]) [data-pc-c="on-ok"] { color: var(--pc-on-ok) !important; }
+:where(html[data-pc-on]) [data-pc-c="on-warn"] { color: var(--pc-on-warn) !important; }
+:where(html[data-pc-on]) [data-pc-c="on-mute"] { color: var(--pc-on-mute) !important; }
+:where(html[data-pc-on]) [data-pc-f=""] { fill: currentColor !important; }
+:where(html[data-pc-on]) [data-pc-s=""] { stroke: currentColor !important; }
+:where(html[data-pc-on]) [data-pc-f="surface"] { fill: var(--pc-surface) !important; }
+:where(html[data-pc-on]) [data-pc-s="surface"] { stroke: var(--pc-surface) !important; }
+:where(html[data-pc-on]) [data-pc-f="surface2"] { fill: var(--pc-surface2) !important; }
+:where(html[data-pc-on]) [data-pc-s="surface2"] { stroke: var(--pc-surface2) !important; }
+:where(html[data-pc-on]) [data-pc-f="line"] { fill: var(--pc-line) !important; }
+:where(html[data-pc-on]) [data-pc-s="line"] { stroke: var(--pc-line) !important; }
+:where(html[data-pc-on]) [data-pc-f="text3"] { fill: var(--pc-text3) !important; }
+:where(html[data-pc-on]) [data-pc-s="text3"] { stroke: var(--pc-text3) !important; }
+:where(html[data-pc-on]) [data-pc-f="tint-accent"] { fill: var(--pc-tint-accent) !important; }
+:where(html[data-pc-on]) [data-pc-s="tint-accent"] { stroke: var(--pc-tint-accent) !important; }
+:where(html[data-pc-on]) [data-pc-f="tint-ok"] { fill: var(--pc-tint-ok) !important; }
+:where(html[data-pc-on]) [data-pc-s="tint-ok"] { stroke: var(--pc-tint-ok) !important; }
+:where(html[data-pc-on]) [data-pc-f="tint-bad"] { fill: var(--pc-tint-bad) !important; }
+:where(html[data-pc-on]) [data-pc-s="tint-bad"] { stroke: var(--pc-tint-bad) !important; }
+:where(html[data-pc-on]) [data-pc-f="tint-warn"] { fill: var(--pc-tint-warn) !important; }
+:where(html[data-pc-on]) [data-pc-s="tint-warn"] { stroke: var(--pc-tint-warn) !important; }
+:where(html[data-pc-on]) [data-pc-b="surface"] { background-color: var(--pc-surface) !important; }
+:where(html[data-pc-on]) [data-pc-b="surface2"] { background-color: var(--pc-surface2) !important; }
+:where(html[data-pc-on]) [data-pc-b="line"] { background-color: var(--pc-line) !important; }
+:where(html[data-pc-on]) [data-pc-b="text3"] { background-color: var(--pc-text3) !important; }
+:where(html[data-pc-on]) [data-pc-b="chrome-bg"] { background-color: var(--pc-chrome-bg) !important; }
+:where(html[data-pc-on]) [data-pc-b="accent"] { background-color: var(--pc-accent) !important; }
+:where(html[data-pc-on]) [data-pc-b="ok"] { background-color: var(--pc-ok) !important; }
+:where(html[data-pc-on]) [data-pc-b="bad"] { background-color: var(--pc-bad) !important; }
+:where(html[data-pc-on]) [data-pc-b="warn"] { background-color: var(--pc-warn) !important; }
+:where(html[data-pc-on]) [data-pc-b="tint-accent"] { background-color: var(--pc-tint-accent) !important; }
+:where(html[data-pc-on]) [data-pc-b="tint-ok"] { background-color: var(--pc-tint-ok) !important; }
+:where(html[data-pc-on]) [data-pc-b="tint-bad"] { background-color: var(--pc-tint-bad) !important; }
+:where(html[data-pc-on]) [data-pc-b="tint-warn"] { background-color: var(--pc-tint-warn) !important; }
+:where(html[data-pc-on]) [data-pc-b="none"] { background-color: transparent !important; }
+:where(html[data-pc-on]) [data-pc-l="line"] { border-color: var(--pc-line) !important; }
+:where(html[data-pc-on]) [data-pc-l="text3"] { border-color: var(--pc-text3) !important; }
+:where(html[data-pc-on]) [data-pc-l="accent"] { border-color: var(--pc-accent) !important; }
+:where(html[data-pc-on]) [data-pc-l="ok"] { border-color: var(--pc-ok) !important; }
+:where(html[data-pc-on]) [data-pc-l="bad"] { border-color: var(--pc-bad) !important; }
+:where(html[data-pc-on]) [data-pc-l="warn"] { border-color: var(--pc-warn) !important; }
+/* text that still doesn't read where it sits (paint.js, data-pc-ink: its colour in --pc-ink) is the last word, so it
+   comes last and the ids lift it over every rule above */
+html[data-pc-on] :is(#application, #wrapper, body) [data-pc-ink] { color: var(--pc-ink) !important; }
+
+/* Canvas's skip link, when a Tab brings it on screen */
+html[data-pc-on] #skip_navigation_link:focus { background: var(--pc-accent) !important; color: var(--pc-on-accent) !important; border-color: var(--pc-accent) !important; border-radius: var(--pc-kr) !important; }

@@ -103,7 +103,9 @@
   const BUILTIN_HOSTS = ["canvas.ucsb.edu"];
   const isCanvasHost = (h, settings) => /\.instructure\.com$/.test(h) || BUILTIN_HOSTS.includes(h) || ((settings && settings.hosts) || []).includes(h);
 
-  PC.u = { esc, MIN, HR, DAY, sod, time, day, due, span, countdown, plural, debounce, uid, hostOf, isCanvasHost, setClock24: (v) => (H24 = !!v), DNM, MNM };
+  /** A school's short name from its Canvas address, for the logo's place: ucsb.instructure.com and canvas.ucsb.edu → UCSB. */
+  const school = (h) => (String(h || "").toLowerCase().split(".").slice(0, -1).filter((p) => p && !/^(www|canvas|instructure|beta|test|com|edu|org|net|ac|co)$/.test(p))[0] || "canvas").toUpperCase().slice(0, 8);
+  PC.u = { esc, MIN, HR, DAY, sod, time, day, due, span, countdown, plural, debounce, uid, hostOf, isCanvasHost, school, setClock24: (v) => (H24 = !!v), DNM, MNM };
   PC.DEFAULTS = DEFAULTS;
   PC.store = store;
 })(globalThis);

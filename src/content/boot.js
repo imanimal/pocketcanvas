@@ -15,6 +15,7 @@
     PC.themes.apply(c.theme, root);
     if (!c.on) { root.style.colorScheme = ""; return; }
     root.setAttribute("data-pc-on", "");
+    root.style.setProperty("--pc-school", JSON.stringify(PC.u.school(location.hostname)));
     for (const f of c.flags || []) root.setAttribute("data-pc-" + f, "");
     for (const [k, v] of Object.entries(c.icons || {})) root.style.setProperty("--pc-ic-" + k, v);
   } catch (e) { /* first visit, or storage blocked: canvas.js applies it a moment later */ }

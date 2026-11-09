@@ -11,7 +11,7 @@
      blocklist redirects to pages/blocked.html (declarativeNetRequest; plain blocking without host access).
    - extra Canvas hosts (settings.hosts) get the content scripts registered once you grant access in settings. */
 const PC = globalThis.PC, api = PC.api;
-const HR = PC.u.HR, CS = { js: ["util", "icons", "themes", "apps", "work", "canvas-api", "collegiapp"].map((f) => `src/lib/${f}.js`).concat(["src/ui/kit.js", "src/content/boot.js", "src/content/canvas.js"]), css: ["src/ui/kit.css", "src/content/canvas.css"] };
+const HR = PC.u.HR, CS = { js: ["util", "icons", "themes", "apps", "work", "canvas-api", "collegiapp"].map((f) => `src/lib/${f}.js`).concat(["src/ui/kit.js", "src/content/boot.js", "src/content/paint.js", "src/content/canvas.js"]), css: ["src/ui/kit.css", "src/content/canvas.css"] };
 const menus = api.menus || api.contextMenus;
 const page = (p) => api.runtime.getURL(`src/pages/${p}.html`);
 

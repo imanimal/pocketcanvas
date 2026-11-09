@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PocketCanvas",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Every Canvas class's work in one list, in order, with WeBWorK and Gradescope due dates filled in. Hide or ghost old classes, mark priority ones, and give Canvas Collegiapp's Pocket look or a plain one.",
   "homepage_url": "https://github.com/imanimal/pocketcanvas",
   "author": "imanimal",
@@ -35,7 +35,7 @@
   "content_scripts": [
     {
       "matches": ["*://*.instructure.com/*", "https://canvas.ucsb.edu/*"],
-      "js": ["src/lib/util.js", "src/lib/icons.js", "src/lib/themes.js", "src/lib/apps.js", "src/lib/work.js", "src/lib/canvas-api.js", "src/lib/collegiapp.js", "src/ui/kit.js", "src/content/boot.js", "src/content/canvas.js"],
+      "js": ["src/lib/util.js", "src/lib/icons.js", "src/lib/themes.js", "src/lib/apps.js", "src/lib/work.js", "src/lib/canvas-api.js", "src/lib/collegiapp.js", "src/ui/kit.js", "src/content/boot.js", "src/content/paint.js", "src/content/canvas.js"],
       "css": ["src/ui/kit.css", "src/content/canvas.css"],
       "run_at": "document_start"
     },

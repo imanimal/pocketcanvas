@@ -215,6 +215,76 @@ test("a chatbot reply becomes a theme, and fix() repairs contrast", () => {
   assert.ok(PC.themes.normalize("no json here").error);
 });
 
+test("text on a dark theme: what reads stays, the rest takes a colour that does", () => {
+  const T = PC.themes, card = "#1b1c1e", text2 = "#c9c9c6", yellow = "#fff2cc";
+  assert.deepStrictEqual(J(T.rgba("rgb(45, 59, 69)")), [45, 59, 69, 1]);
+  assert.deepStrictEqual(J(T.rgba("rgb(10 20 30 / 50%)")), [10, 20, 30, 0.5]);
+  assert.deepStrictEqual(J(T.rgba("color(srgb 1 0.5 0 / 0.5)")), [255, 128, 0, 0.5]);
+  assert.deepStrictEqual(J(T.rgba("transparent")), [0, 0, 0, 0]);
+  assert.deepStrictEqual(J(T.rgba("#fff")), [255, 255, 255, 1]);
+  assert.strictEqual(T.rgba("red"), null);
+  assert.strictEqual(T.over([0, 0, 0, 0.5], "#ffffff"), "#808080");
+  // pasted white goes, a tint someone picked stays
+  assert.ok(T.paper([255, 255, 255, 1]) && T.paper([248, 248, 248, 1]));
+  assert.ok(!T.paper(T.rgba(yellow)) && !T.paper([255, 255, 255, 0]));
+  // Canvas's ink and black on the card take the theme's text; Canvas's grey and the theme's own text read already
+  assert.strictEqual(T.ink("#2d3b45", card, text2), text2);
+  assert.strictEqual(T.ink("#000000", card, text2), text2);
+  assert.strictEqual(T.ink("#6b7780", card, text2), null);
+  assert.strictEqual(T.ink(text2, card, text2), null);
+  // in a teacher's light box the theme's text turns to Canvas's ink, and their own black stays
+  assert.strictEqual(T.ink(text2, yellow, text2), "#2d3b45");
+  assert.strictEqual(T.ink("#000000", yellow, text2, 4.5), null);
+  // a teacher's red keeps its hue and lightens until it reads
+  const red = T.ink("#e03e2d", card, text2, 4.5), [r, g] = T.rgba(red);
+  assert.ok(T.contrast(red, card) >= 4.5 && r > g + 40, red);
+  for (const [fg, bg] of [["#0000ff", card], ["#003660", "#0c0c0d"], ["#ffff00", yellow], ["#808080", "#7f7f7f"]]) assert.ok(T.contrast(T.ink(fg, bg, text2, 4.5), bg) >= 4.5, fg + " on " + bg);
+});
+
+test("Canvas's colours take the theme's by the job they do", () => {
+  const T = PC.themes, R = (c, use, fill, head) => T.role(T.rgba(c), use, fill, head);
+  // cards, wells, hairlines and the old slate nav
+  assert.strictEqual(R("#ffffff", "bg"), "surface");
+  assert.strictEqual(R("#f5f5f5", "bg"), "surface2");
+  assert.strictEqual(R("#c7cdd1", "line"), "line");
+  assert.strictEqual(R("#394b58", "bg"), "chrome-bg");
+  // text: slate is body text (a heading's is the theme's strongest), grey is quiet text
+  assert.strictEqual(R("#2d3b45", "fg"), "text2");
+  assert.strictEqual(R("#2d3b45", "fg", null, true), "text");
+  assert.strictEqual(R("#6b7780", "fg"), "text3");
+  // Canvas's blue is the main key as a fill and a link as text; white on the key is the key's text
+  assert.strictEqual(R("#0374b5", "bg"), "accent");
+  assert.strictEqual(R("#0374b5", "fg"), "link");
+  assert.strictEqual(R("#ffffff", "fg", "accent"), "on-accent");
+  assert.strictEqual(R("#ffffff", "fg"), null);
+  // states keep their meaning, pale ones become tints
+  assert.strictEqual(R("#0b874b", "fg"), "ok");
+  assert.strictEqual(R("#e0061f", "fg"), "bad");
+  assert.strictEqual(R("#fc5e13", "fg"), "warn-ink");
+  assert.strictEqual(R("#fc5e13", "bg"), "warn");
+  assert.strictEqual(R("#e5f2f8", "bg"), "tint-accent");
+  // purple has no job, and a see-through grey wash is left to show what's under it
+  assert.strictEqual(R("#9e58bd", "fg"), null);
+  assert.strictEqual(R("rgba(0,0,0,.1)", "bg"), null);
+  // whole values: borders and hairline shadows change, drop shadows and the theme's own colours stay
+  assert.strictEqual(T.recolour("1px solid #c7cdd1", "line"), "1px solid var(--pc-line)");
+  assert.strictEqual(T.recolour("0 0 0 1px #c7cdd1", "shadow"), "0 0 0 1px var(--pc-line)");
+  assert.strictEqual(T.recolour("0 0 0 2px #0374b5", "shadow"), "0 0 0 2px var(--pc-accent)");
+  assert.strictEqual(T.recolour("0 2px 4px rgba(0,0,0,.2)", "shadow"), null);
+  assert.strictEqual(T.recolour("0 1px 0 #000", "shadow"), null);
+  assert.strictEqual(T.recolour("#0374b5", "bg", null, false, () => true), null);
+  // every built-in theme gets text for the fills it names none for, and it reads
+  const m = {}, root = { style: { setProperty: (k, v) => (m[k] = v) }, dataset: {} };
+  for (const t of T.BUILTIN) {
+    T.apply(t, root);
+    for (const [on, fill] of [["on-ok", "ok"], ["on-warn", "warn"], ["on-mute", "text3"], ["on-acc2", "acc2"]]) assert.ok(T.contrast(m["--pc-" + on], t.tokens[fill]) >= 4, `${t.id} ${on}`);
+  }
+});
+
+test("the logo tile names the school from Canvas's address", () => {
+  for (const [h, s] of [["ucsb.instructure.com", "UCSB"], ["canvas.ucsb.edu", "UCSB"], ["canvas.ox.ac.uk", "OX"], ["umich.instructure.com", "UMICH"], ["canvas.instructure.com", "CANVAS"], ["", "CANVAS"]]) assert.strictEqual(PC.u.school(h), s, h);
+});
+
 test("GPA and the final-exam helper", () => {
   const scale = PC.DEFAULTS.gpaScale;
   const g = PC.work.gpa([{ score: 95, units: 4 }, { score: 84, units: 4 }], { gpaScale: scale, priorGpa: "3.5", priorUnits: "40" }, () => true);
