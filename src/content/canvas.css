@@ -100,7 +100,8 @@ html[data-pc-on] #global_nav_history_link { --pc-mask: var(--pc-ic-clock); }
 html[data-pc-on] #global_nav_help_link { --pc-mask: var(--pc-ic-help); }
 html[data-pc-on] #global_nav_groups_link { --pc-mask: var(--pc-ic-links); }
 html[data-pc-on] .ic-app-header__menu-list-item--active .menu-item-icon-container::after { background: var(--pc-accent) !important; }
-html[data-pc-on] .menu-item__badge, html[data-pc-on] .ic-app-header .menu-item__badge { background: var(--pc-accent) !important; color: var(--pc-on-accent) !important; font-family: var(--pc-mono) !important; }
+/* the badge sits over the pixel icon, which is drawn later as the container's ::after */
+html[data-pc-on] .menu-item__badge, html[data-pc-on] .ic-app-header .menu-item__badge { background: var(--pc-accent) !important; color: var(--pc-on-accent) !important; font-family: var(--pc-mono) !important; z-index: 1 !important; }
 
 /* ── the global nav's trays (Courses, Groups, Account, History, Help) ──
    InstUI trays mounted in #nav-tray-portal, which Canvas stacks at z-index 99 so they slide out from under the global

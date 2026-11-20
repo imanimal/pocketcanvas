@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "PocketCanvas",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Every Canvas class's work in one list, in order, with WeBWorK and Gradescope due dates filled in. Hide or ghost old classes, mark priority ones, and give Canvas Collegiapp's Pocket look or a plain one.",
   "homepage_url": "https://github.com/imanimal/pocketcanvas",
   "author": "imanimal",
